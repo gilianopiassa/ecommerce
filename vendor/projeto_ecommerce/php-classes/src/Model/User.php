@@ -4,10 +4,14 @@
 
 	use \Projeto_Ecommerce\DB\Sql;
 	use \Projeto_Ecommerce\Model;
+	use \Projeto_Ecommerce\Mailer;
 
 	class User extends Model {
 
 		const SESSION = "User";
+		const TYPECYPHER = "AES-256-CBC";
+		const SECRET = "BTK8plRwzSXQvkr1";
+		const IV = "Y3B7D3FZywxykNts";
 
 		public static function login($login, $password) {
 
@@ -89,13 +93,20 @@
 			$results = $sql->select("CALL sp_users_save(:desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
 				":desperson"=>$this->getdesperson(),
 				":deslogin"=>$this->getdeslogin(),
-				":despassword"=>$this->getdespassword(),
+				":despassword"=>User::getPasswordHash($this->getdespassword()),
 				":desemail"=>$this->getdesemail(),
 				":nrphone"=>$this->getnrphone(),
 				":inadmin"=>$this->getinadmin()
 			));
 
 			$this->setData($results[0]);
+		}
+
+		public static function getPasswordHash($password)
+		{
+			return password_hash($password, PASSWORD_DEFAULT, [
+				'cost'=> 12
+			]);
 		}
 
 		public function update() 
@@ -106,7 +117,7 @@
 				":iduser"=>$this->getiduser(),
 				":desperson"=>$this->getdesperson(),
 				":deslogin"=>$this->getdeslogin(),
-				":despassword"=>$this->getdespassword(),
+				":despassword"=>$this->User::getPasswordHash($this->getdespassword()),
 				":desemail"=>$this->getdesemail(),
 				":nrphone"=>$this->getnrphone(),
 				"inadmin"=>$this->getinadmin()
@@ -122,6 +133,108 @@
 			$sql = new Sql();
 
 			$sql->query("CALL sp_users_delete(:iduser)", array (
+				":iduser"=>$this->getiduser()
+			));
+		}
+
+		public static function getForgot($email)
+		{
+			$sql = new Sql();
+
+			$results = $sql->select("
+				SELECT * 
+				FROM tb_persons a 
+				INNER JOIN tb_users b using(idperson) 
+				WHERE a.desemail = :email;
+			", array(
+				":email"=>$email
+			));
+
+			if (count($results) === 0)
+			{
+				throw new \Exception("Não foi possível recuperar a senha.", 1);				
+			}
+			else
+			{
+				$data = $results[0];
+
+				$results2 = $sql->select("CALL sp_userspasswordsrecoveries_create(:iduser, :desip)", array(
+					":iduser"=>$data["iduser"],
+					":desip"=>$_SERVER["REMOTE_ADDR"]
+				));
+
+				if (count($results2) === 0)
+				{
+					throw new Exception("Não foi possível recuperar a senha.", 1);					
+				}
+				else
+				{
+					$dataRecovery = $results2[0];
+
+					$code = base64_encode(openssl_encrypt($dataRecovery["idrecovery"], User::TYPECYPHER, User::SECRET, 
+						$options = 0, $iv = User::IV));
+
+					$link = "http://www.projetoecommerce.com.br/admin/forgot/reset?code=$code";
+
+					$mailer = new Mailer($data["desemail"], $data["desperson"], "Redefinir senha do Projeto Ecommerce", "forgot", array(
+						"name"=>$data["desperson"],
+						"link"=>$link
+					));
+
+					$mailer->send();
+
+					return $data;
+				}
+			}
+		}
+
+		public static function validForgotDecrypt($code)
+		{
+			$idrecovery = openssl_decrypt(base64_decode($code), User::TYPECYPHER, User::SECRET, $options = 0, $iv = User::IV);
+
+			$sql = new Sql();
+
+			$results = $sql->select("
+				SELECT *
+				FROM tb_userspasswordsrecoveries a
+				INNER JOIN tb_users b USING(iduser)
+				INNER JOIN tb_persons c USING(idperson)
+				WHERE
+					a.idrecovery = :idrecovery
+				    AND
+				    a.dtrecovery IS NULL
+				    AND
+				    DATE_ADD(a.dtregister, INTERVAL 1 HOUR) >= NOW();
+				", array(
+					":idrecovery"=>$idrecovery
+				));
+
+			if (count($results) === 0)
+			{
+				throw new \Exception("Não foi possível recuperar a senha.");
+				
+			}
+			else
+			{
+				return $results[0];
+			}
+		}
+
+		public static function setForgotUsed($idrecovery)
+		{
+			$sql = new Sql();
+
+			$sql->query("UPDATE tb_userspasswordsrecoveries SET dtrecovery = NOW() WHERE idrecovery = :idrecovery", array(
+				":idrecovery"=>$idrecovery
+			));
+		}
+
+		public function setPassword($password)
+		{
+			$sql = new Sql();
+
+			$sql->query("UPDATE tb_users SET despassword = :password WHERE iduser = :iduser", array(
+				":password"=>User::getPasswordHash($password),
 				":iduser"=>$this->getiduser()
 			));
 		}
