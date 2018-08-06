@@ -4,6 +4,7 @@
 	use \Projeto_Ecommerce\Page;	
 	use \Projeto_Ecommerce\PageAdmin;
 	use \Projeto_Ecommerce\Model\Category;
+	use \Projeto_Ecommerce\Model\Product;
 
 	$app->get("/admin/categories", function(){
 
@@ -87,7 +88,8 @@
 		exit;
 	});
 
-	$app->get("/categories/:idcategory", function($idcategory){
+
+	$app->get("/admin/categories/:idcategory/products", function($idcategory) {
 
 		User::verifyLogin();
 
@@ -95,13 +97,49 @@
 
 		$category->get((int)$idcategory);
 
-		$page = new Page();
+		$page = new PageAdmin();
 
-		$page->setTpl("category", [
+		$page->setTpl("categories-products", [
 			'category'=>$category->getValues(),
-			'products'=>[]
+			'productsRelated'=>$category->getProducts(),
+			'productsNotRelated'=>$category->getProducts(false)
 		]);
+	});
 
+	$app->get("/admin/categories/:idcategory/products/:idproduct/add", function ($idcategory, $idproduct) {
+
+		User::verifyLogin();
+
+		$category = new Category();
+
+		$category->get((int)$idcategory);
+
+		$product = new Product();
+
+		$product->get((int)$idproduct);
+
+		$category->addProduct($product);
+
+		header("Location: /admin/categories/".$idcategory."/products");
+		exit;
+	});
+
+		$app->get("/admin/categories/:idcategory/products/:idproduct/remove", function ($idcategory, $idproduct) {
+
+		User::verifyLogin();
+
+		$category = new Category();
+
+		$category->get((int)$idcategory);
+
+		$product = new Product();
+
+		$product->get((int)$idproduct);
+
+		$category->removeProduct($product);
+
+		header("Location: /admin/categories/".$idcategory."/products");
+		exit;
 	});
 
  ?>
