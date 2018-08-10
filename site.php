@@ -3,6 +3,7 @@
 	use \Projeto_Ecommerce\Page;
 	use \Projeto_Ecommerce\Model\Product;
 	use \Projeto_Ecommerce\Model\Category;
+	use \Projeto_Ecommerce\Model\Cart;
 
 	$app->get('/', function() {
 
@@ -57,6 +58,15 @@
 			'product'=>$product->getValues(),
 			'categories'=>$product->getCategories()
 		]);
+	});
+
+	$app->get("/cart", function(){
+
+		$cart = Cart::getFromSession();
+
+		$page = new Page();
+
+		$page->setTpl("cart");
 	});
 
 
