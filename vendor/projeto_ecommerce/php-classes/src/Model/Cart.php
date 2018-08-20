@@ -16,6 +16,7 @@
 
 			$cart = new Cart();
 
+
 			if (isset($_SESSION[Cart::SESSION]) && (int)$_SESSION[Cart::SESSION]['idcart'] > 0)
 			{
 
@@ -30,7 +31,7 @@
 				{
 
 					$data = [
-						':dessessionid'=>session_id()
+						'dessessionid'=>session_id()
 					];
 
 					if (User::checkLogin(false))
@@ -109,9 +110,16 @@
 				':deszipcode'=>$this->getdeszipcode(),
 				':vlfreight'=>$this->getvlfreight(),
 				':nrdays'=>$this->getnrdays()
-			]);			
+			]);	
+
+			if (count($results) > 0)
+			{
 
 				$this->setData($results[0]);
+
+			}		
+
+				
 			
 		}		
 	

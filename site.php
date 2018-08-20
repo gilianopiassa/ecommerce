@@ -60,7 +60,7 @@
 		]);
 	});
 
-	$app->get("/cart", function(){
+	$app->get("/cart", function() {
 
 		$cart = Cart::getFromSession();
 
