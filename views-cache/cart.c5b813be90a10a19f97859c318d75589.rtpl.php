@@ -67,7 +67,7 @@
                                         </td>
 
                                         <td class="product-subtotal">
-                                            <span class="amount">RR$<?php echo formatPrice($value1["vltotal"]); ?></span> 
+                                            <span class="amount">R$<?php echo formatPrice($value1["vltotal"]); ?></span> 
                                         </td>
                                     </tr>
                                     <?php } ?>                                    
