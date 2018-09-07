@@ -193,7 +193,7 @@
 			));
 		}
 
-		public static function getForgot($email)
+		public static function getForgot($email, $inadmin = true)
 		{
 			$sql = new Sql();
 
@@ -230,7 +230,19 @@
 					$code = base64_encode(openssl_encrypt($dataRecovery["idrecovery"], User::TYPECYPHER, User::SECRET, 
 						$options = 0, $iv = User::IV));
 
-					$link = "http://www.projetoecommerce.com.br/admin/forgot/reset?code=$code";
+					if ($inadmin === true)
+					{
+
+						$link = "http://www.projetoecommerce.com.br/admin/forgot/reset?code=$code";
+
+					}
+					else
+					{
+
+						$link = "http://www.projetoecommerce.com.br/forgot/reset?code=$code";
+
+					}
+					
 
 					$mailer = new Mailer($data["desemail"], $data["desperson"], "Redefinir senha do Projeto Ecommerce", "forgot", array(
 						"name"=>$data["desperson"],
