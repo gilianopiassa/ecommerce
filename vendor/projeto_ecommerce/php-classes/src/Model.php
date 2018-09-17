@@ -4,7 +4,7 @@
 
 	class Model {
 
-		private $value = [];
+		private $values = [];
 
 		public function __call($name, $args)
 		{
@@ -33,7 +33,7 @@
 
 		public function getValues()
 		{
-			return $this->value;
+			return $this->values;
 		}
 	}
 

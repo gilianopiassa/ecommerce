@@ -7,6 +7,8 @@
 
 	class Address extends Model {
 
+		const SESSION_ERROR = "AddressError";
+
 		public static function getCEP($nrcep)
 		{
 
@@ -37,14 +39,61 @@
 				$this->setdescomplement($data['complemento']);
 				$this->setdesdistrict($data['bairro']);
 				$this->setdescity($data['localidade']);
-				$this->setdestate($data['uf']);
+				$this->setdesstate($data['uf']);
 				$this->setdescountry('Brasil');
-				$this->setnrzipcode($nrcep);
+				$this->setdeszipcode($nrcep);
 			}
 
 
 		}
-		
+
+		public function save()
+		{
+			$sql = new Sql();
+
+			$results = $sql->select("CALL sp_addresses_save(:idaddress, :idperson, :desaddress, :descomplement, :descity, :desstate, :descountry, :deszipcode, :desdistrict)", [
+				':idaddress'=>$this->getidaddress(),
+				':idperson'=>$this->getidperson(),
+				':desaddress'=>utf8_decode($this->getdesaddress()),
+				':descomplement'=>utf8_decode($this->getdescomplement()),
+				':descity'=>utf8_decode($this->getdescity()),
+				':desstate'=>utf8_decode($this->getdesstate()),
+				':descountry'=>utf8_decode($this->getdescountry()),
+				':deszipcode'=>$this->getdeszipcode(),
+				':desdistrict'=>utf8_decode($this->getdesdistrict())
+			]);
+
+			if (count($results) > 0)
+			{
+
+				$this->setData($results[0]);
+			}
+		}
+
+		public static function setMsgError($msg)
+		{
+
+			$_SESSION[Address::SESSION_ERROR] = $msg;
+
+		}
+
+		public static function getMsgError()
+		{
+
+			$msg = (isset($_SESSION[Address::SESSION_ERROR])) ? $_SESSION[Address::SESSION_ERROR] : "";
+
+			Address::clearMsgError();
+
+			return $msg;
+
+		}
+
+		public static function clearMsgError()
+		{
+
+			$_SESSION[Address::SESSION_ERROR] = NULL;
+
+		}		
 	
 	}
 
