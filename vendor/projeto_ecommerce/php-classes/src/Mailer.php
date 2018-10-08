@@ -6,8 +6,8 @@
 
 	class Mailer {
 
-		const USERNAME = "gilianopiassa@gmail.com";
-		const PASSWORD = "g1l1@N0p1@ss@";
+		const USERNAME = "teste@letsthink.com.br ";
+		const PASSWORD = "t3st3123";
 		const NAME_FROM = "Projeto Ecommerce";
 
 		private $mail;
@@ -50,7 +50,7 @@
 			$this->mail->SMTPDebug = 0;
 
 			//Set the hostname of the mail server
-			$this->mail->Host = 'smtp.gmail.com';
+			$this->mail->Host = 'mx1.hostinger.com.br';
 			// use
 			// $this->mail->Host = gethostbyname('smtp.gmail.com');
 			// if your network does not support SMTP over IPv6
